@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<style xmlns="http://purl.org/net/xbiblio/csl" class="note" version="1.0" default-locale="en-GB">
+  <info>
+    <title>Scaling Up (custom footnote style)</title>
+    <id>http://example.com/scaling-up</id>
+    <link href="http://example.com/scaling-up" rel="self"/>
+    <author>
+      <name>Hessam Mehr group</name>
+    </author>
+    <category citation-format="note"/>
+    <summary>Compact footnote style matching the original .tex: surnames only, et al. after 6, italic journal, bold volume, pages, year in parentheses.</summary>
+    <updated>2026-05-11T00:00:00+00:00</updated>
+  </info>
+
+  <locale xml:lang="en">
+    <terms>
+      <term name="et-al">et al.</term>
+    </terms>
+  </locale>
+
+  <macro name="author-short">
+    <names variable="author">
+      <name form="short" and="text" delimiter=", " et-al-min="7" et-al-use-first="6" initialize-with=""/>
+      <substitute>
+        <names variable="editor"/>
+      </substitute>
+    </names>
+  </macro>
+
+  <macro name="year">
+    <date variable="issued" prefix="(" suffix=")">
+      <date-part name="year"/>
+    </date>
+  </macro>
+
+  <macro name="title">
+    <choose>
+      <if type="article-journal article-magazine article-newspaper article" match="any">
+        <text variable="title"/>
+      </if>
+      <else-if type="chapter paper-conference" match="any">
+        <text variable="title" quotes="true"/>
+      </else-if>
+      <else>
+        <text variable="title" font-style="italic"/>
+      </else>
+    </choose>
+  </macro>
+
+  <macro name="container">
+    <choose>
+      <if type="article-journal article-magazine article-newspaper article" match="any">
+        <text variable="container-title" font-style="italic" form="short"/>
+      </if>
+      <else-if type="chapter paper-conference" match="any">
+        <text term="in" suffix=" "/>
+        <text variable="container-title" font-style="italic"/>
+      </else-if>
+    </choose>
+  </macro>
+
+  <macro name="volume-pages">
+    <group delimiter=", ">
+      <text variable="volume" font-weight="bold"/>
+      <text variable="page"/>
+    </group>
+  </macro>
+
+  <macro name="publisher">
+    <group delimiter=", ">
+      <text variable="publisher"/>
+      <text variable="publisher-place"/>
+    </group>
+  </macro>
+
+  <citation et-al-min="7" et-al-use-first="6" disambiguate-add-year-suffix="true">
+    <layout delimiter="; " suffix=".">
+      <group delimiter=", ">
+        <text macro="author-short"/>
+        <choose>
+          <if type="article-journal article-magazine article-newspaper article" match="any">
+            <text macro="container"/>
+            <text macro="volume-pages"/>
+            <text macro="year"/>
+          </if>
+          <else-if type="chapter paper-conference" match="any">
+            <text macro="title"/>
+            <text macro="container"/>
+            <text variable="page"/>
+            <text macro="year"/>
+          </else-if>
+          <else>
+            <text macro="title"/>
+            <text macro="publisher"/>
+            <text macro="year"/>
+          </else>
+        </choose>
+      </group>
+    </layout>
+  </citation>
+
+  <bibliography>
+    <layout suffix=".">
+      <group delimiter=", ">
+        <text macro="author-short"/>
+        <choose>
+          <if type="article-journal article-magazine article-newspaper article" match="any">
+            <text macro="container"/>
+            <text macro="volume-pages"/>
+            <text macro="year"/>
+          </if>
+          <else-if type="chapter paper-conference" match="any">
+            <text macro="title"/>
+            <text macro="container"/>
+            <text variable="page"/>
+            <text macro="year"/>
+          </else-if>
+          <else>
+            <text macro="title"/>
+            <text macro="publisher"/>
+            <text macro="year"/>
+          </else>
+        </choose>
+      </group>
+    </layout>
+  </bibliography>
+</style>

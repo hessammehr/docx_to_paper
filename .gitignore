@@ -1,0 +1,6 @@
+build/
+*.docx
+~$*.docx
+*.pdf
+*.tex
+.DS_Store
