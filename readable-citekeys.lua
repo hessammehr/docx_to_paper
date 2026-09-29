@@ -10,8 +10,42 @@
 
 local stringify = pandoc.utils.stringify
 
+-- Latin letters with diacritics -> ASCII, so e.g. Gonçalves -> Goncalves
+-- instead of Gonalves. Anything not listed is still dropped by clean_key.
+local ascii = {}
+do
+  local groups = {
+    A = 'ÀÁÂÃÄÅĀĂĄ', a = 'àáâãäåāăą', C = 'ÇĆĈĊČ', c = 'çćĉċč',
+    D = 'ĎĐ', d = 'ďđ', E = 'ÈÉÊËĒĔĖĘĚ', e = 'èéêëēĕėęě',
+    G = 'ĜĞĠĢ', g = 'ĝğġģ', H = 'ĤĦ', h = 'ĥħ', I = 'ÌÍÎÏĨĪĬĮİ', i = 'ìíîïĩīĭįı',
+    J = 'Ĵ', j = 'ĵ', K = 'Ķ', k = 'ķ', L = 'ĹĻĽĿŁ', l = 'ĺļľŀł',
+    N = 'ÑŃŅŇ', n = 'ñńņň', O = 'ÒÓÔÕÖØŌŎŐ', o = 'òóôõöøōŏő',
+    R = 'ŔŖŘ', r = 'ŕŗř', S = 'ŚŜŞŠȘ', s = 'śŝşšș', T = 'ŢŤŦȚ', t = 'ţťŧț',
+    U = 'ÙÚÛÜŨŪŬŮŰŲ', u = 'ùúûüũūŭůűų', W = 'Ŵ', w = 'ŵ',
+    Y = 'ÝŸŶ', y = 'ýÿŷ', Z = 'ŹŻŽ', z = 'źżž',
+  }
+  for base, chars in pairs(groups) do
+    for _, cp in utf8.codes(chars) do ascii[cp] = base end
+  end
+  for ch, rep in pairs({ ['ß'] = 'ss', ['Æ'] = 'AE', ['æ'] = 'ae', ['Œ'] = 'OE',
+                         ['œ'] = 'oe', ['Þ'] = 'Th', ['þ'] = 'th', ['Ð'] = 'D', ['ð'] = 'd' }) do
+    ascii[utf8.codepoint(ch)] = rep
+  end
+end
+
+local function transliterate(s)
+  local ok, out = pcall(function()
+    local parts = {}
+    for _, cp in utf8.codes(s) do
+      parts[#parts + 1] = ascii[cp] or utf8.char(cp)
+    end
+    return table.concat(parts)
+  end)
+  return ok and out or s
+end
+
 local function clean_key(s)
-  s = (s or ''):gsub('%s+', ''):gsub('[^A-Za-z0-9:_-]', '')
+  s = transliterate(s or ''):gsub('%s+', ''):gsub('[^A-Za-z0-9:_-]', '')
   if s == '' then return 'ref' end
   return s
 end
@@ -35,7 +69,9 @@ end
 local function base_key(ref)
   local existing = stringify(ref['citation-key'] or '')
   if existing ~= '' then return clean_key(existing) end
-  return clean_key(first_author_family(ref) .. year(ref))
+  local name = transliterate(first_author_family(ref)):gsub('[^A-Za-z]', '')
+  if name == '' then name = 'Anon' end
+  return clean_key(name .. year(ref))
 end
 
 function Pandoc(doc)
