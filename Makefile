@@ -21,6 +21,7 @@ ZOTERO_CHECK_FILTER := zotero-check.lua
 HEADER_FOOTER_FILTER := docx-header-footer.lua
 TITLE_FILTER := docx-title.lua
 STRAY_SUP_FILTER := stray-superscripts.lua
+CENTER_IMAGES_FILTER := center-images.lua
 BUILD    := build
 
 PANDOC        := pandoc
@@ -44,6 +45,7 @@ COMMON_PDF_FLAGS := \
 	--from=markdown \
 	--template=$(TEMPLATE) \
 	--lua-filter=$(STRAY_SUP_FILTER) \
+	--lua-filter=$(CENTER_IMAGES_FILTER) \
 	--citeproc \
 	--csl=$(CSL) \
 	--pdf-engine=$(PANDOC_ENGINE)
@@ -120,13 +122,13 @@ $(BUILD)/$(1)/$(1)-pdf.md: $(BUILD)/$(1)/$(1).md
 		perl -0pi -e 's/\.svg(?=([\)"{]))/.pdf/g' "$$@"; \
 	fi
 
-$(BUILD)/$(1)/$(1).pdf: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).json $(TEMPLATE) $(CSL) $(STRAY_SUP_FILTER)
+$(BUILD)/$(1)/$(1).pdf: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).json $(TEMPLATE) $(CSL) $(STRAY_SUP_FILTER) $(CENTER_IMAGES_FILTER)
 	$(PANDOC) $(COMMON_PDF_FLAGS) \
 		--bibliography=$(BUILD)/$(1)/$(1).json \
 		-M suppress-bibliography=true \
 		-o "$$@" "$$<"
 
-$(BUILD)/$(1)/$(1).tex: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).json $(TEMPLATE) $(CSL) $(STRAY_SUP_FILTER)
+$(BUILD)/$(1)/$(1).tex: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).json $(TEMPLATE) $(CSL) $(STRAY_SUP_FILTER) $(CENTER_IMAGES_FILTER)
 	$(PANDOC) $(COMMON_PDF_FLAGS) \
 		--bibliography=$(BUILD)/$(1)/$(1).json \
 		-M suppress-bibliography=true \
@@ -143,7 +145,7 @@ $(foreach name,$(DOCX_BASE),$(eval $(call DOCX_RULES,$(name))))
 # Backwards-compatible rule for hand-written Markdown in this directory
 # (e.g. Abstract.md + Group papers.bib). Bibliography/CSL may be set in YAML;
 # if not, pass BIB="file.bib" on the make command line.
-%.pdf: %.md $(TEMPLATE) $(CSL) $(STRAY_SUP_FILTER)
+%.pdf: %.md $(TEMPLATE) $(CSL) $(STRAY_SUP_FILTER) $(CENTER_IMAGES_FILTER)
 	$(PANDOC) $(COMMON_PDF_FLAGS) $(if $(BIB),--bibliography="$(BIB)",) -o "$@" "$<"
 
 clean:
