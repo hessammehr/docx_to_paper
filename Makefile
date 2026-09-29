@@ -18,6 +18,7 @@ FILTER   := readable-citekeys.lua
 DROP_REFS_FILTER := drop-embedded-references.lua
 CORE_PROPS_FILTER := docx-core-props.lua
 ZOTERO_CHECK_FILTER := zotero-check.lua
+STRAY_SUP_FILTER := stray-superscripts.lua
 BUILD    := build
 
 PANDOC        := pandoc
@@ -40,6 +41,7 @@ ROOT_PDF   := $(ROOT_MD:.md=.pdf)
 COMMON_PDF_FLAGS := \
 	--from=markdown \
 	--template=$(TEMPLATE) \
+	--lua-filter=$(STRAY_SUP_FILTER) \
 	--citeproc \
 	--csl=$(CSL) \
 	--pdf-engine=$(PANDOC_ENGINE)
@@ -114,13 +116,13 @@ $(BUILD)/$(1)/$(1)-pdf.md: $(BUILD)/$(1)/$(1).md
 		perl -0pi -e 's/\.svg(?=([\)"{]))/.pdf/g' "$$@"; \
 	fi
 
-$(BUILD)/$(1)/$(1).pdf: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).json $(TEMPLATE) $(CSL)
+$(BUILD)/$(1)/$(1).pdf: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).json $(TEMPLATE) $(CSL) $(STRAY_SUP_FILTER)
 	$(PANDOC) $(COMMON_PDF_FLAGS) \
 		--bibliography=$(BUILD)/$(1)/$(1).json \
 		-M suppress-bibliography=true \
 		-o "$$@" "$$<"
 
-$(BUILD)/$(1)/$(1).tex: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).json $(TEMPLATE) $(CSL)
+$(BUILD)/$(1)/$(1).tex: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).json $(TEMPLATE) $(CSL) $(STRAY_SUP_FILTER)
 	$(PANDOC) $(COMMON_PDF_FLAGS) \
 		--bibliography=$(BUILD)/$(1)/$(1).json \
 		-M suppress-bibliography=true \
@@ -137,7 +139,7 @@ $(foreach name,$(DOCX_BASE),$(eval $(call DOCX_RULES,$(name))))
 # Backwards-compatible rule for hand-written Markdown in this directory
 # (e.g. Abstract.md + Group papers.bib). Bibliography/CSL may be set in YAML;
 # if not, pass BIB="file.bib" on the make command line.
-%.pdf: %.md $(TEMPLATE) $(CSL)
+%.pdf: %.md $(TEMPLATE) $(CSL) $(STRAY_SUP_FILTER)
 	$(PANDOC) $(COMMON_PDF_FLAGS) $(if $(BIB),--bibliography="$(BIB)",) -o "$@" "$<"
 
 clean:
