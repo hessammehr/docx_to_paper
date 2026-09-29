@@ -25,7 +25,7 @@ CENTER_IMAGES_FILTER := center-images.lua
 BUILD    := build
 
 PANDOC        := pandoc
-PANDOC_ENGINE ?= xelatex
+PANDOC_ENGINE ?= lualatex
 
 # Ignore Word lock files (~$foo.docx). GNU make is not pleasant with spaces in
 # target names; use simple filenames for dropped-in DOCX files if possible.

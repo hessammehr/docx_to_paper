@@ -34,7 +34,7 @@ The PDF bibliography comes from the CSL-JSON export, which keeps Zotero's item t
 
 - `pandoc` with Lua support
 - GNU/BSD `make`
-- A LaTeX engine, default `xelatex` (`lualatex` and `pdflatex` also work)
+- A LaTeX engine, default `lualatex` (`xelatex` and `pdflatex` also work)
 - TeX packages `libertine`, `newtx` and `inconsolata` (all in TeX Live/MacTeX)
 - For SVG figures in PDFs: `rsvg-convert` or `inkscape`
 
@@ -61,7 +61,7 @@ make clean
 You can change the PDF engine:
 
 ```sh
-make PANDOC_ENGINE=lualatex
+make PANDOC_ENGINE=xelatex
 ```
 
 ## Files to customize
