@@ -14,14 +14,14 @@ SHELL := /bin/bash
 
 TEMPLATE := template.tex
 CSL      := example.csl
-FILTER   := readable-citekeys.lua
-DROP_REFS_FILTER := drop-embedded-references.lua
-CORE_PROPS_FILTER := docx-core-props.lua
-ZOTERO_CHECK_FILTER := zotero-check.lua
-HEADER_FOOTER_FILTER := docx-header-footer.lua
-TITLE_FILTER := docx-title.lua
-STRAY_SUP_FILTER := stray-superscripts.lua
-CENTER_IMAGES_FILTER := center-images.lua
+FILTER   := filters/readable-citekeys.lua
+DROP_REFS_FILTER := filters/drop-embedded-references.lua
+CORE_PROPS_FILTER := filters/docx-core-props.lua
+ZOTERO_CHECK_FILTER := filters/zotero-check.lua
+HEADER_FOOTER_FILTER := filters/docx-header-footer.lua
+TITLE_FILTER := filters/docx-title.lua
+STRAY_SUP_FILTER := filters/stray-superscripts.lua
+CENTER_IMAGES_FILTER := filters/center-images.lua
 BUILD    := build
 
 PANDOC        := pandoc

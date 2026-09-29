@@ -70,7 +70,7 @@ make PANDOC_ENGINE=xelatex
 - `example.csl` — CSL citation style
 - `Makefile` — build rules and Pandoc options
 
-Lua filters run when extracting from DOCX:
+Lua filters live in `filters/`. These run when extracting from DOCX:
 
 - `readable-citekeys.lua` — readable citation keys
 - `drop-embedded-references.lua` — keeps the Markdown free of embedded CSL data
