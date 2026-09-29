@@ -8,6 +8,7 @@
 %   geometry     (default margin=2.2cm) twocolumn (true/false)
 %   indent       (true: indented paragraphs instead of spaced ones)
 %   byline       (true: print author/date under the title)
+%   titlegraphic (an image, e.g. ![](logo.png){height=3cm}): shown above the title
 %   linestretch, lang, title, subtitle, author, date
 \documentclass[$if(fontsize)$$fontsize$$else$10pt$endif$,$if(papersize)$$papersize$paper$else$a4paper$endif$$if(twocolumn)$,twocolumn$endif$]{article}
 \usepackage{amsmath}
@@ -86,6 +87,10 @@ $endfor$
 \begin{document}
 $if(title)$
 \begin{center}
+$if(titlegraphic)$
+$titlegraphic$\par
+\vspace{4pt}
+$endif$
 {\LARGE\bfseries $title$\par}
 $if(subtitle)$
 \vspace{3pt}{\large $subtitle$\par}
