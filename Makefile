@@ -30,6 +30,7 @@ ROOT_MD := $(filter-out README.md,$(wildcard *.md))
 
 DOCX_MD    := $(foreach name,$(DOCX_BASE),$(BUILD)/$(name)/$(name).md)
 DOCX_BIB   := $(foreach name,$(DOCX_BASE),$(BUILD)/$(name)/$(name).bib)
+DOCX_JSON  := $(foreach name,$(DOCX_BASE),$(BUILD)/$(name)/$(name).json)
 DOCX_PDF   := $(foreach name,$(DOCX_BASE),$(BUILD)/$(name)/$(name).pdf)
 DOCX_TEX   := $(foreach name,$(DOCX_BASE),$(BUILD)/$(name)/$(name).tex)
 DOCX_DOCX  := $(foreach name,$(DOCX_BASE),$(BUILD)/$(name)/$(name)-roundtrip.docx)
@@ -46,7 +47,7 @@ COMMON_PDF_FLAGS := \
 
 all: extract pdf
 
-extract: $(DOCX_MD) $(DOCX_BIB)
+extract: $(DOCX_MD) $(DOCX_BIB) $(DOCX_JSON)
 
 pdf: $(DOCX_PDF) root-pdf
 
@@ -61,13 +62,16 @@ list:
 	@echo "ROOT_MD:  $(ROOT_MD)"
 	@echo "DOCX_MD:  $(DOCX_MD)"
 	@echo "DOCX_BIB: $(DOCX_BIB)"
+	@echo "DOCX_JSON: $(DOCX_JSON)"
 	@echo "DOCX_PDF: $(DOCX_PDF)"
 
-# Extract Markdown and BibLaTeX from each Zotero-cited Word document. The Lua
-# filter replaces Zotero numeric IDs with readable citation keys in both files.
+# Extract Markdown, BibLaTeX and CSL-JSON from each Zotero-cited Word document.
+# The Lua filter replaces Zotero numeric IDs with readable citation keys in all
+# three. The PDF uses the CSL-JSON: it keeps Zotero's item types (e.g. preprints),
+# which the BibLaTeX round-trip loses. The .bib is an editable export.
 # Explicit per-file rules avoid GNU make's awkwardness with repeated % patterns.
 define DOCX_RULES
-$(BUILD)/$(1)/$(1).md $(BUILD)/$(1)/$(1).bib: $(1).docx $(FILTER) $(DROP_REFS_FILTER) $(CORE_PROPS_FILTER)
+$(BUILD)/$(1)/$(1).md $(BUILD)/$(1)/$(1).bib $(BUILD)/$(1)/$(1).json: $(1).docx $(FILTER) $(DROP_REFS_FILTER) $(CORE_PROPS_FILTER)
 	@mkdir -p $(BUILD)/$(1)
 	$(PANDOC) -f docx+citations \
 		--lua-filter=$(FILTER) \
@@ -82,6 +86,11 @@ $(BUILD)/$(1)/$(1).md $(BUILD)/$(1)/$(1).bib: $(1).docx $(FILTER) $(DROP_REFS_FI
 	$(PANDOC) -f docx+citations --lua-filter=$(FILTER) "$(1).docx" \
 		-t biblatex \
 		-o $(BUILD)/$(1)/$(1).bib
+	$(PANDOC) -f docx+citations --lua-filter=$(FILTER) "$(1).docx" \
+		-t csljson \
+		-o $(BUILD)/$(1)/$(1).json
+	@# Zotero stores arXiv numbers as "arXiv:NNNN"; CSL styles add their own prefix.
+	perl -pi -e 's/("number":\s*")arXiv:/$$$$1/' $(BUILD)/$(1)/$(1).json
 
 # LaTeX cannot include SVG directly unless the local toolchain provides SVG
 # conversion. For PDF output only, make a Markdown copy whose SVG links point to
@@ -103,15 +112,15 @@ $(BUILD)/$(1)/$(1)-pdf.md: $(BUILD)/$(1)/$(1).md
 		perl -0pi -e 's/\.svg(?=([\)"{]))/.pdf/g' "$$@"; \
 	fi
 
-$(BUILD)/$(1)/$(1).pdf: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).bib $(TEMPLATE) $(CSL)
+$(BUILD)/$(1)/$(1).pdf: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).json $(TEMPLATE) $(CSL)
 	$(PANDOC) $(COMMON_PDF_FLAGS) \
-		--bibliography=$(BUILD)/$(1)/$(1).bib \
+		--bibliography=$(BUILD)/$(1)/$(1).json \
 		-M suppress-bibliography=true \
 		-o "$$@" "$$<"
 
-$(BUILD)/$(1)/$(1).tex: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).bib $(TEMPLATE) $(CSL)
+$(BUILD)/$(1)/$(1).tex: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).json $(TEMPLATE) $(CSL)
 	$(PANDOC) $(COMMON_PDF_FLAGS) \
-		--bibliography=$(BUILD)/$(1)/$(1).bib \
+		--bibliography=$(BUILD)/$(1)/$(1).json \
 		-M suppress-bibliography=true \
 		-o "$$@" "$$<"
 
