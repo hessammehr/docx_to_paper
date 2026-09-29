@@ -1,0 +1,96 @@
+% Pandoc LaTeX template for proposal/paper PDFs.
+% Linux Libertine text, newtxmath maths, Inconsolata mono (ACM/SIGGRAPH-like).
+% Works with xelatex, lualatex and pdflatex. Pandoc's built-in common.latex
+% partial supplies lists, tables, graphics, CSL citations, etc.
+%
+% Metadata variables:
+%   fontsize     (default 10pt)        papersize  (default a4)
+%   geometry     (default margin=2.2cm) twocolumn (true/false)
+%   indent       (true: indented paragraphs instead of spaced ones)
+%   byline       (true: print author/date under the title)
+%   linestretch, lang, title, subtitle, author, date
+\documentclass[$if(fontsize)$$fontsize$$else$10pt$endif$,$if(papersize)$$papersize$paper$else$a4paper$endif$$if(twocolumn)$,twocolumn$endif$]{article}
+\usepackage{amsmath}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\fi
+\ifPDFTeX
+  \usepackage[tt=false]{libertine}
+  \usepackage[varqu,scaled=0.95]{zi4}
+  \usepackage[libertine,vvarbb]{newtxmath}
+\else
+  % newtxmath first, then text fonts via fontspec without touching maths.
+  \usepackage[libertine,vvarbb]{newtxmath}
+  \usepackage[no-math]{fontspec}
+  \usepackage[tt=false]{libertine}
+  \setmonofont{Inconsolatazi4-Regular.otf}[Scale=0.95,BoldFont=Inconsolatazi4-Bold.otf]
+\fi
+\usepackage[$if(microtype-expansion)$$else$expansion=false$endif$]{microtype}
+\usepackage[$if(geometry)$$for(geometry)$$geometry$$sep$,$endfor$$else$margin=2.2cm$endif$]{geometry}
+\usepackage{xcolor}
+\definecolor{linkblue}{RGB}{0,62,138}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage[labelformat=empty,font=small,skip=6pt]{caption}
+\usepackage{enumitem}
+% List markers flush with the text margin; text hangs after the marker.
+\setlist{itemsep=2pt,topsep=4pt,parsep=0pt,leftmargin=*,labelindent=0pt,labelsep=0.5em}
+\usepackage{titlesec}
+\titleformat{\section}{\normalfont\large\bfseries}{}{0pt}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{}{0pt}{}
+\titleformat{\subsubsection}{\normalfont\normalsize\itshape}{}{0pt}{}
+\titlespacing*{\section}{0pt}{12pt plus 3pt minus 2pt}{5pt}
+\titlespacing*{\subsection}{0pt}{9pt plus 2pt minus 2pt}{3pt}
+\titlespacing*{\subsubsection}{0pt}{7pt plus 2pt minus 1pt}{2pt}
+% Headings from Word carry their own numbers.
+\setcounter{secnumdepth}{-\maxdimen}
+\usepackage{newunicodechar}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{🡪}{\ensuremath{\rightarrow}}% Wingdings arrow from Word
+\setlength{\emergencystretch}{3em}
+\widowpenalty=10000 \clubpenalty=10000
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+$common.latex()$
+% Keep figures where the source document put them.
+\makeatletter\def\fps@figure{H}\makeatother
+$if(csl-refs)$
+\usepackage{etoolbox}
+\AtBeginEnvironment{CSLReferences}{\raggedright}
+$endif$
+\usepackage{bookmark}
+\usepackage{xurl}
+\urlstyle{same}
+\hypersetup{colorlinks=true,linkcolor=linkblue,citecolor=linkblue,urlcolor=linkblue,
+  pdfauthor={$author-meta$},pdftitle={$if(title-meta)$$title-meta$$else$$pagetitle$$endif$},
+  pdfcreator={pandoc}}
+$for(header-includes)$
+$header-includes$
+$endfor$
+\begin{document}
+$if(title)$
+\begin{center}
+{\LARGE\bfseries $title$\par}
+$if(subtitle)$
+\vspace{3pt}{\large $subtitle$\par}
+$endif$
+$if(byline)$
+$if(author)$
+\vspace{6pt}{\large $for(author)$$author$$sep$, $endfor$\par}
+$endif$
+$if(date)$
+\vspace{3pt}{\small $date$\par}
+$endif$
+$endif$
+\end{center}
+\vspace{6pt}
+$endif$
+$for(include-before)$
+$include-before$
+$endfor$
+$body$
+$for(include-after)$
+$include-after$
+$endfor$
+\end{document}

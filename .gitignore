@@ -3,4 +3,5 @@ build/
 ~$*.docx
 *.pdf
 *.tex
+!template.tex
 .DS_Store
