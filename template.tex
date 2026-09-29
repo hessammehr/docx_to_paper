@@ -49,6 +49,21 @@
 \usepackage{newunicodechar}
 \newunicodechar{→}{\ensuremath{\rightarrow}}
 \newunicodechar{🡪}{\ensuremath{\rightarrow}}% Wingdings arrow from Word
+\usepackage{fancyhdr}
+% Running header/footer from the Word document (docx-header-footer.lua).
+\fancypagestyle{docx}{%
+  \fancyhf{}\renewcommand{\headrulewidth}{0pt}\renewcommand{\footrulewidth}{0pt}%
+  \fancyhead[L]{\small\sffamily $header-left$}%
+  \fancyhead[C]{\small\sffamily $header-center$}%
+  \fancyhead[R]{\small\sffamily $header-right$}%
+  \fancyfoot[L]{\small\sffamily $footer-left$}%
+  \fancyfoot[C]{\small\sffamily $footer-center$}%
+  \fancyfoot[R]{\small\sffamily $footer-right$}}
+$if(docx-page-style)$
+\pagestyle{docx}
+\fancypagestyle{plain}{\pagestyle{docx}}
+$endif$
+\setlength{\headheight}{14pt}
 \setlength{\emergencystretch}{3em}
 \widowpenalty=10000 \clubpenalty=10000
 \providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}

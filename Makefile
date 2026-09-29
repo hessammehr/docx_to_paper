@@ -18,6 +18,7 @@ FILTER   := readable-citekeys.lua
 DROP_REFS_FILTER := drop-embedded-references.lua
 CORE_PROPS_FILTER := docx-core-props.lua
 ZOTERO_CHECK_FILTER := zotero-check.lua
+HEADER_FOOTER_FILTER := docx-header-footer.lua
 STRAY_SUP_FILTER := stray-superscripts.lua
 BUILD    := build
 
@@ -74,13 +75,14 @@ list:
 # which the BibLaTeX round-trip loses. The .bib is an editable export.
 # Explicit per-file rules avoid GNU make's awkwardness with repeated % patterns.
 define DOCX_RULES
-$(BUILD)/$(1)/$(1).md $(BUILD)/$(1)/$(1).bib $(BUILD)/$(1)/$(1).json: $(1).docx $(FILTER) $(DROP_REFS_FILTER) $(CORE_PROPS_FILTER) $(ZOTERO_CHECK_FILTER)
+$(BUILD)/$(1)/$(1).md $(BUILD)/$(1)/$(1).bib $(BUILD)/$(1)/$(1).json: $(1).docx $(FILTER) $(DROP_REFS_FILTER) $(CORE_PROPS_FILTER) $(ZOTERO_CHECK_FILTER) $(HEADER_FOOTER_FILTER)
 	@mkdir -p $(BUILD)/$(1)
 	$(PANDOC) -f docx+citations \
 		--lua-filter=$(FILTER) \
 		--lua-filter=$(DROP_REFS_FILTER) \
 		--lua-filter=$(CORE_PROPS_FILTER) \
 		--lua-filter=$(ZOTERO_CHECK_FILTER) \
+		--lua-filter=$(HEADER_FOOTER_FILTER) \
 		"$(1).docx" \
 		-t markdown --standalone --extract-media=$(BUILD)/$(1) \
 		-M bibliography=$(1).bib \
