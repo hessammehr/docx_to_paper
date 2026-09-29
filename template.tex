@@ -69,6 +69,12 @@ $endif$
 \widowpenalty=10000 \clubpenalty=10000
 \providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 $common.latex()$
+% Shaded text from Word (filters/colors.lua): lua-ul's \highLight breaks across
+% lines. Other engines keep the text but drop the shading.
+\makeatletter
+\ifLuaTeX\@ifpackageloaded{lua-ul}{}{\usepackage{luacolor}\usepackage{lua-ul}}\fi
+\makeatother
+\providecommand{\highLight}[2][]{#2}
 % Keep figures where the source document put them.
 \makeatletter\def\fps@figure{H}\makeatother
 $if(csl-refs)$

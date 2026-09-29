@@ -20,6 +20,8 @@ CORE_PROPS_FILTER := filters/docx-core-props.lua
 ZOTERO_CHECK_FILTER := filters/zotero-check.lua
 HEADER_FOOTER_FILTER := filters/docx-header-footer.lua
 TITLE_FILTER := filters/docx-title.lua
+DOCX_COLORS_FILTER := filters/docx-colors.lua
+COLORS_FILTER := filters/colors.lua
 STRAY_SUP_FILTER := filters/stray-superscripts.lua
 CENTER_IMAGES_FILTER := filters/center-images.lua
 BUILD    := build
@@ -46,11 +48,12 @@ COMMON_PDF_FLAGS := \
 	--template=$(TEMPLATE) \
 	--lua-filter=$(STRAY_SUP_FILTER) \
 	--lua-filter=$(CENTER_IMAGES_FILTER) \
+	--lua-filter=$(COLORS_FILTER) \
 	--citeproc \
 	--csl=$(CSL) \
 	--pdf-engine=$(PANDOC_ENGINE)
 
-.PHONY: all extract pdf docx tex root-pdf clean watch list
+.PHONY: all extract pdf docx tex root-pdf clean watch list test
 
 all: extract pdf
 
@@ -78,9 +81,10 @@ list:
 # which the BibLaTeX round-trip loses. The .bib is an editable export.
 # Explicit per-file rules avoid GNU make's awkwardness with repeated % patterns.
 define DOCX_RULES
-$(BUILD)/$(1)/$(1).md $(BUILD)/$(1)/$(1).bib $(BUILD)/$(1)/$(1).json: $(1).docx $(FILTER) $(DROP_REFS_FILTER) $(CORE_PROPS_FILTER) $(ZOTERO_CHECK_FILTER) $(HEADER_FOOTER_FILTER) $(TITLE_FILTER)
+$(BUILD)/$(1)/$(1).md $(BUILD)/$(1)/$(1).bib $(BUILD)/$(1)/$(1).json: $(1).docx $(FILTER) $(DROP_REFS_FILTER) $(CORE_PROPS_FILTER) $(ZOTERO_CHECK_FILTER) $(HEADER_FOOTER_FILTER) $(TITLE_FILTER) $(DOCX_COLORS_FILTER)
 	@mkdir -p $(BUILD)/$(1)
 	$(PANDOC) -f docx+citations \
+		--lua-filter=$(DOCX_COLORS_FILTER) \
 		--lua-filter=$(FILTER) \
 		--lua-filter=$(DROP_REFS_FILTER) \
 		--lua-filter=$(CORE_PROPS_FILTER) \
@@ -122,13 +126,13 @@ $(BUILD)/$(1)/$(1)-pdf.md: $(BUILD)/$(1)/$(1).md
 		perl -0pi -e 's/\.svg(?=([\)"{]))/.pdf/g' "$$@"; \
 	fi
 
-$(BUILD)/$(1)/$(1).pdf: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).json $(TEMPLATE) $(CSL) $(STRAY_SUP_FILTER) $(CENTER_IMAGES_FILTER)
+$(BUILD)/$(1)/$(1).pdf: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).json $(TEMPLATE) $(CSL) $(STRAY_SUP_FILTER) $(CENTER_IMAGES_FILTER) $(COLORS_FILTER)
 	$(PANDOC) $(COMMON_PDF_FLAGS) \
 		--bibliography=$(BUILD)/$(1)/$(1).json \
 		-M suppress-bibliography=true \
 		-o "$$@" "$$<"
 
-$(BUILD)/$(1)/$(1).tex: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).json $(TEMPLATE) $(CSL) $(STRAY_SUP_FILTER) $(CENTER_IMAGES_FILTER)
+$(BUILD)/$(1)/$(1).tex: $(BUILD)/$(1)/$(1)-pdf.md $(BUILD)/$(1)/$(1).json $(TEMPLATE) $(CSL) $(STRAY_SUP_FILTER) $(CENTER_IMAGES_FILTER) $(COLORS_FILTER)
 	$(PANDOC) $(COMMON_PDF_FLAGS) \
 		--bibliography=$(BUILD)/$(1)/$(1).json \
 		-M suppress-bibliography=true \
@@ -145,8 +149,11 @@ $(foreach name,$(DOCX_BASE),$(eval $(call DOCX_RULES,$(name))))
 # Backwards-compatible rule for hand-written Markdown in this directory
 # (e.g. Abstract.md + Group papers.bib). Bibliography/CSL may be set in YAML;
 # if not, pass BIB="file.bib" on the make command line.
-%.pdf: %.md $(TEMPLATE) $(CSL) $(STRAY_SUP_FILTER) $(CENTER_IMAGES_FILTER)
+%.pdf: %.md $(TEMPLATE) $(CSL) $(STRAY_SUP_FILTER) $(CENTER_IMAGES_FILTER) $(COLORS_FILTER)
 	$(PANDOC) $(COMMON_PDF_FLAGS) $(if $(BIB),--bibliography="$(BIB)",) -o "$@" "$<"
+
+test:
+	uv run tests/docx-colors-test.py
 
 clean:
 	rm -rf $(BUILD)

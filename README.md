@@ -55,6 +55,7 @@ make pdf      # build PDFs from extracted Markdown
 make docx     # round-trip extracted Markdown back to DOCX
 make tex      # emit intermediate LaTeX for debugging
 make list     # show detected inputs and outputs
+make test     # run the filter tests (needs uv)
 make clean
 ```
 
@@ -77,12 +78,14 @@ Lua filters live in `filters/`. These run when extracting from DOCX:
 - `docx-core-props.lua` — fills `author`/`title`/`date` from Word core properties
 - `docx-header-footer.lua` — copies Word's page header and footer (see below)
 - `docx-title.lua` — a leading image + short paragraph becomes `titlegraphic` + `title`
+- `docx-colors.lua` — keeps Word text colour and shading (see below)
 - `zotero-check.lua` — warns about unresolved Zotero citations (see below)
 
 and when building the PDF:
 
 - `stray-superscripts.lua` — drops and reports leftover citation numbers
 - `center-images.lua` — centres images that stand alone in a paragraph, as Word does
+- `colors.lua` — renders colour and shading spans
 
 ## Template
 
@@ -107,5 +110,6 @@ For DOCX input, the page style follows the Word document: the header and footer 
 - Zotero citations must be live Word fields. Flattened/plain-text citations cannot be recovered as structured citations.
 - `[zotero-check]` warnings point to citations Zotero never finished inserting (`ZOTERO_TEMP` fields, often shown as `{Citation}` or a bare number in Word). Pandoc drops some of these silently. Re-insert them with Zotero and save.
 - `[stray-superscripts]` warnings list superscript numbers that look like citations but are plain text (e.g. typed or pasted `^8,9^`). They are removed from the PDF because they would clash with the generated numbering. Exponents such as `x^2^`, `10^6^` or `cm^-1^` are kept.
+- Font colour and shading applied directly to text in Word (e.g. a coloured label heading a shaded block) are kept as `[text]{color="#BF4E14"}` and `[text]{shading="#FAE2D5"}` spans with Word's exact colours; pandoc alone drops them. Shading needs LuaLaTeX. Black/dark grey text, white shading and coloured punctuation are ignored as usually accidental. Colours that come from character styles, highlighter pen (kept by pandoc as `[text]{.mark}`), table-cell shading, footnotes and text boxes are not handled. `[docx-colors]` warnings list paragraphs whose colours could not be placed.
 - Extracted Markdown preserves SVG figures. For PDF output only, SVGs are converted to vector PDF for LaTeX; they are not rasterized.
 - `docx-core-props.lua` reads Word core properties and fills missing YAML metadata such as `author` from `dc:creator`.
